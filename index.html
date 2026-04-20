@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadly Time | Store</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --text-main: #d1d1d1;
+            --text-dim: #888888;
+            --accent-silver: #b0b0b0;
+            --accent-purple: #b464ff;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #05000a; }
+        ::-webkit-scrollbar-thumb { background: #1a0b2e; border-radius: 10px; border: 2px solid #05000a; }
+        ::selection { background: rgba(180, 100, 255, 0.3); color: #fff; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, #1a0b2e 0%, #0a0510 50%, #000000 100%);
+            color: var(--text-main);
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            perspective: 1000px;
+        }
+
+        #network-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+        }
+
+        .card-wrapper {
+            position: relative; padding: 1px;
+            background: linear-gradient(0deg, transparent, var(--accent-purple), transparent);
+            background-size: 100% 200%;
+            animation: borderRotate 5s linear infinite;
+            border-radius: 4px; z-index: 10;
+            transition: transform 0.1s ease-out;
+        }
+
+        @keyframes borderRotate {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 0% 200%; }
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(20, 10, 30, 0.95) 50%, rgba(10, 10, 10, 0.95) 100%);
+            background-size: 200% 200%;
+            animation: cardGradient 8s ease infinite;
+            backdrop-filter: blur(20px); border-radius: 3px;
+            padding: 50px; width: 580px; box-shadow: 0 0 100px rgba(0, 0, 0, 1);
+            position: relative;
+        }
+
+        @keyframes cardGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* JUMPING WITH SMOOTH RESET */
+        .jumping-title {
+            font-weight: 900; font-size: 42px;
+            text-transform: uppercase; letter-spacing: 12px; text-align: center;
+            margin-bottom: 40px; cursor: default; color: #fff;
+            display: flex; justify-content: center;
+        }
+
+        .jumping-title span {
+            display: inline-block;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), color 0.4s;
+        }
+
+        .jumping-title:hover span {
+            animation: jump 0.35s ease infinite alternate;
+        }
+
+        @keyframes jump {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-18px); color: var(--accent-purple); }
+        }
+
+        .jumping-title span:nth-child(1) { animation-delay: 0.0s; }
+        .jumping-title span:nth-child(2) { animation-delay: 0.05s; }
+        .jumping-title span:nth-child(3) { animation-delay: 0.1s; }
+        .jumping-title span:nth-child(4) { animation-delay: 0.15s; }
+        .jumping-title span:nth-child(5) { animation-delay: 0.2s; }
+        .jumping-title span:nth-child(6) { animation-delay: 0.25s; }
+        .jumping-title span:nth-child(7) { animation-delay: 0.3s; }
+        .jumping-title span:nth-child(8) { animation-delay: 0.35s; }
+        .jumping-title span:nth-child(9) { animation-delay: 0.4s; }
+        .jumping-title span:nth-child(10) { animation-delay: 0.45s; }
+        .jumping-title span:nth-child(11) { animation-delay: 0.5s; }
+
+        .rules {
+            font-size: 13px; color: #666; margin-bottom: 35px; padding: 15px;
+            border-left: 3px solid #333;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+            line-height: 1.8;
+        }
+
+        .copy-target {
+            color: var(--accent-purple); cursor: pointer; transition: 0.2s;
+            position: relative; display: inline-block;
+        }
+        .copy-target:hover { color: #fff; }
+
+        .price-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            transition: 0.3s ease; cursor: default;
+        }
+
+        .price-row:hover {
+            color: #fff; padding-left: 10px;
+            background: rgba(180, 100, 255, 0.03);
+            border-bottom-color: rgba(180, 100, 255, 0.2);
+        }
+
+        .role-name { font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .role-cost { 
+            font-family: 'Share Tech Mono', monospace; font-size: 20px; 
+            color: var(--accent-silver); min-width: 140px; text-align: right;
+        }
+
+        .buy-btn {
+            display: block; margin-top: 40px; padding: 20px; text-align: center;
+            text-decoration: none; color: #000; background: #a0a0a0;
+            font-weight: 900; text-transform: uppercase; letter-spacing: 5px;
+            transition: 0.4s; cursor: pointer;
+        }
+
+        .buy-btn:hover {
+            background: var(--accent-purple); color: #fff;
+        }
+
+        .watermark {
+            position: absolute; bottom: 15px; left: 0; width: 100%;
+            text-align: center; font-family: 'Share Tech Mono', monospace;
+            font-size: 11px; color: #444; letter-spacing: 1.2px;
+            text-transform: uppercase; cursor: pointer; transition: 0.3s;
+        }
+        .watermark:hover { color: var(--accent-purple); text-shadow: 0 0 5px var(--accent-purple); }
+
+        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; }
+        .toast {
+            background: rgba(10, 10, 10, 0.95); border-left: 3px solid var(--accent-purple);
+            color: #fff; padding: 15px 25px; margin-top: 10px;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+            backdrop-filter: blur(10px); animation: slideIn 0.4s ease forwards;
+        }
+        @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+    <canvas id="network-canvas"></canvas>
+    <div id="toast-container"></div>
+
+    <div class="card-wrapper" id="parallax-card">
+        <div class="card">
+            <h1 class="jumping-title">
+                <span>D</span><span>E</span><span>A</span><span>D</span><span>L</span><span>Y</span>&nbsp;<span>T</span><span>I</span><span>M</span><span>E</span>
+            </h1>
+
+            <div class="rules">
+                • Покупка ролей у <b class="copy-target" id="copy-nick">3abnctb_34</b><br>
+                • Роли выдаются до окончания вайпа
+            </div>
+
+            <div class="price-list">
+                <div class="price-row">
+                    <span class="role-name">ZamOwner</span>
+                    <span class="role-cost" data-value="70.000.000$">70.000.000$</span>
+                </div>
+                <div class="price-row">
+                    <span class="role-name">Trusted Person</span>
+                    <span class="role-cost" data-value="50.000.000$">50.000.000$</span>
+                </div>
+                <div class="price-row">
+                    <span class="role-name">Кастомная роль</span>
+                    <span class="role-cost" data-value="20M-150M$">20M-150M$</span>
+                </div>
+                <div class="price-row">
+                    <span class="role-name">Premium</span>
+                    <span class="role-cost" data-value="15.000.000$">15.000.000$</span>
+                </div>
+                <div class="price-row">
+                    <span class="role-name">VIP Deadly</span>
+                    <span class="role-cost" data-value="5.000.000$">5.000.000$</span>
+                </div>
+            </div>
+
+            <div class="buy-btn" id="buy-action">Связаться</div>
+
+            <div class="watermark" id="halalskiy-mark">by halalskiy</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let particles = [];
+        const particleCount = 280; 
+        const connectionRadius = 140; 
+        const mouseRadius = 200; 
+        const minDistance = 45; 
+        const mouse = { x: null, y: null };
+
+        const letters = "0123456789$ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        document.querySelectorAll('.role-cost').forEach(el => {
+            el.onmouseover = event => {
+                let iteration = 0;
+                const interval = setInterval(() => {
+                    event.target.innerText = event.target.innerText
+                        .split("")
+                        .map((letter, index) => {
+                            if(index < iteration) return event.target.dataset.value[index];
+                            return letters[Math.floor(Math.random() * 36)]
+                        })
+                        .join("");
+                    if(iteration >= event.target.dataset.value.length) clearInterval(interval);
+                    iteration += 1 / 3;
+                }, 30);
+            }
+        });
+
+        function showToast(text) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = text;
+            container.appendChild(toast);
+            setTimeout(() => { 
+                toast.style.opacity = '0'; 
+                setTimeout(() => toast.remove(), 500); 
+            }, 3000);
+        }
+
+        function copyText(text, successMsg) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg);
+            });
+        }
+
+        document.getElementById('copy-nick').onclick = function() {
+            copyText(this.innerText, 'НИК СКОПИРОВАН В БУФЕР');
+        };
+
+        document.getElementById('halalskiy-mark').onclick = function() {
+            copyText('9ff09', 'ЮЗЕРНЕЙМ СКОПИРОВАН');
+        };
+
+        const cardWrapper = document.getElementById('parallax-card');
+        document.addEventListener('mousemove', e => {
+            if (window.innerWidth > 768) {
+                const xAxis = (window.innerWidth / 2 - e.clientX) / 30;
+                const yAxis = (window.innerHeight / 2 - e.clientY) / 30;
+                cardWrapper.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            }
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        document.getElementById('buy-action').addEventListener('click', () => {
+            showToast('ПОДКЛЮЧЕНИЕ К DISCORD...');
+            setTimeout(() => {
+                window.open('https://discord.com/users/1182405427573575740', '_blank');
+            }, 1500);
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 1.8; 
+                this.speedY = (Math.random() - 0.5) * 1.8;
+            }
+            update() {
+                if (mouse.x !== null) {
+                    const dxMouse = mouse.x - this.x;
+                    const dyMouse = mouse.y - this.y;
+                    const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+                    if (distMouse < mouseRadius && distMouse > minDistance) {
+                        const force = (mouseRadius - distMouse) / mouseRadius;
+                        this.x += (dxMouse / distMouse) * force * 3.5;
+                        this.y += (dyMouse / distMouse) * force * 3.5;
+                    }
+                }
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > width || this.x < 0) this.speedX *= -1;
+                if (this.y > height || this.y < 0) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(180, 100, 255, 0.5)'; 
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // EXPLOSION SYSTEM RETURNED
+        window.addEventListener('mousedown', (e) => {
+            particles.forEach(p => {
+                const dx = p.x - e.clientX;
+                const dy = p.y - e.clientY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 350) {
+                    const force = (350 - dist) / 15;
+                    p.speedX += (dx / dist) * force;
+                    p.speedY += (dy / dist) * force;
+                }
+            });
+        });
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            init();
+        }
+
+        function init() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function handleParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < connectionRadius) {
+                        ctx.strokeStyle = `rgba(180, 100, 255, ${(1 - dist / connectionRadius) * 0.3})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            handleParticles();
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+
+        resize();
+        animate();
+    </script>
+</body>
+</html>
